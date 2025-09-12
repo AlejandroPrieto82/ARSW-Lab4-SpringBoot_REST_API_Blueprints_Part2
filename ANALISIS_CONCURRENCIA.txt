@@ -1,0 +1,71 @@
+Análisis de Concurrencia – BlueprintsRESTAPI
+===================================
+===================================
+
+1. Posibles condiciones de carrera
+
+El componente BlueprintsRESTAPI atiende múltiples peticiones HTTP en paralelo, y cada petición se maneja en un hilo distinto. Esto puede generar condiciones de carrera en:
+
+1. Registro de nuevos planos (POST)
+   - Dos hilos podrían intentar guardar el mismo plano (mismo autor y nombre) al mismo tiempo.
+   - Si se usara un HashMap normal con containsKey() seguido de put(), podría suceder que ambos pasen la validación y terminen insertando duplicados.
+
+2. Actualización de planos (PUT)
+   - Dos hilos podrían intentar actualizar el mismo plano simultáneamente.
+   - Si no se controla, el último en escribir sobrescribe al anterior, perdiéndose la actualización previa.
+
+3. Consulta + modificación simultánea (GET con POST/PUT)
+   - Mientras un hilo lee un plano (GET), otro podría modificarlo (PUT), lo cual es esperable en un sistema concurrente.
+   - El problema sería si las operaciones de escritura no fueran atómicas y dejaran la colección en un estado inconsistente.
+
+===================================
+===================================
+
+2. Regiones críticas
+
+Las operaciones críticas son todas las que modifican la colección que almacena los planos:
+
+- saveBlueprint(Blueprint bp)
+- updateBlueprint(String author, String name, Blueprint bp)
+
+En particular:
+- saveBlueprint debe garantizar que no se sobrescriba un plano existente si dos hilos lo crean al mismo tiempo.
+- updateBlueprint debe garantizar que la actualización sea atómica: reemplazo completo o nada.
+
+===================================
+===================================
+
+3. Estrategia aplicada
+
+En lugar de usar un HashMap no seguro para hilos con bloques synchronized (lo cual degrada mucho el rendimiento), se aplicaron las siguientes estrategias:
+
+1. Uso de ConcurrentHashMap
+   - Colección thread-safe que permite múltiples lecturas concurrentes y operaciones de escritura eficientes.
+   - Internamente divide el mapa en segmentos, reduciendo la contención entre hilos.
+
+2. Operaciones atómicas provistas por la colección
+   - putIfAbsent() en saveBlueprint: garantiza que el registro solo se inserta si no existe, de forma atómica.
+   - replace() en updateBlueprint: reemplaza solo si la clave ya existe, evitando inconsistencias.
+
+3. Consultas (GET)
+   - Lecturas sobre ConcurrentHashMap no requieren sincronización adicional y son consistentes respecto a la última escritura completada.
+
+===================================
+===================================
+
+4. Ventajas de esta solución
+
+- Mayor concurrencia: múltiples hilos pueden leer y escribir al mismo tiempo sin bloquearse innecesariamente.
+- Operaciones atómicas: se evita la condición de carrera sin usar bloques synchronized.
+- Escalabilidad: soporta muchas peticiones concurrentes sin degradación significativa del desempeño.
+
+===================================
+===================================
+
+5. Conclusión
+
+El diseño final evita condiciones de carrera al:
+- Usar ConcurrentHashMap en lugar de HashMap.
+- Aplicar métodos atómicos (putIfAbsent, replace).
+
+De esta forma, el API puede atender múltiples clientes concurrentes de manera segura y eficiente, cumpliendo con los requerimientos de concurrencia sin sacrificar rendimiento.
