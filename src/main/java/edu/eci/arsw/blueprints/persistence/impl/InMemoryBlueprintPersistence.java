@@ -1,6 +1,7 @@
 package edu.eci.arsw.blueprints.persistence.impl;
 
 import edu.eci.arsw.blueprints.model.Blueprint;
+import edu.eci.arsw.blueprints.model.Point;
 import edu.eci.arsw.blueprints.persistence.BlueprintNotFoundException;
 import edu.eci.arsw.blueprints.persistence.BlueprintPersistenceException;
 import edu.eci.arsw.blueprints.persistence.BlueprintsPersistence;
@@ -11,52 +12,31 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
-/**
- * Implementación en memoria del sistema de persistencia de planos.
- *
- * Esta clase utiliza un {@link ConcurrentHashMap} para almacenar los planos
- * en memoria, identificados de manera única por una tupla {@link Tuple}
- * compuesta por autor y nombre del plano.
- *
- * Es un componente de Spring gestionado mediante anotaciones (@Component).
- */
 @Component
 public class InMemoryBlueprintPersistence implements BlueprintsPersistence {
 
-    /** Almacén de planos, indexados por (autor, nombre). */
     private final Map<Tuple<String, String>, Blueprint> blueprints;
 
-    /**
-     * Crea una nueva instancia de persistencia en memoria,
-     * inicializando la estructura de almacenamiento.
-     */
     public InMemoryBlueprintPersistence() {
         this.blueprints = new ConcurrentHashMap<>();
+        // Inicializar con al menos 3 planos; 2 del mismo autor
+        Blueprint bp1 = new Blueprint("juan", "plano1", new Point[]{new Point(1,1), new Point(2,2)});
+        Blueprint bp2 = new Blueprint("juan", "plano2", new Point[]{new Point(3,3), new Point(4,4)});
+        Blueprint bp3 = new Blueprint("maria", "carro", new Point[]{new Point(5,5), new Point(6,6)});
+        blueprints.put(new Tuple<>(bp1.getAuthor(), bp1.getName()), bp1);
+        blueprints.put(new Tuple<>(bp2.getAuthor(), bp2.getName()), bp2);
+        blueprints.put(new Tuple<>(bp3.getAuthor(), bp3.getName()), bp3);
     }
 
-    /**
-     * Guarda un nuevo plano en el sistema de persistencia.
-     *
-     * @param bp el plano a guardar
-     * @throws BlueprintPersistenceException si el plano ya existe en memoria
-     */
     @Override
     public void saveBlueprint(Blueprint bp) throws BlueprintPersistenceException {
         Tuple<String, String> key = new Tuple<>(bp.getAuthor(), bp.getName());
-        if (blueprints.containsKey(key)) {
+        Blueprint previous = blueprints.putIfAbsent(key, bp);
+        if (previous != null) {
             throw new BlueprintPersistenceException("The given blueprint already exists: " + bp);
         }
-        blueprints.put(key, bp);
     }
 
-    /**
-     * Recupera un plano específico a partir de su autor y nombre.
-     *
-     * @param author autor del plano
-     * @param bprintname nombre del plano
-     * @return el plano correspondiente
-     * @throws BlueprintNotFoundException si no existe un plano con el autor y nombre indicados
-     */
     @Override
     public Blueprint getBlueprint(String author, String bprintname) throws BlueprintNotFoundException {
         Blueprint bp = blueprints.get(new Tuple<>(author, bprintname));
@@ -66,26 +46,28 @@ public class InMemoryBlueprintPersistence implements BlueprintsPersistence {
         return bp;
     }
 
-    /**
-     * Recupera todos los planos de un autor específico.
-     *
-     * @param author autor cuyos planos se quieren consultar
-     * @return conjunto de planos pertenecientes al autor
-     */
     @Override
-    public Set<Blueprint> getBlueprintsByAuthor(String author) {
-        return blueprints.values().stream()
+    public Set<Blueprint> getBlueprintsByAuthor(String author) throws BlueprintNotFoundException {
+        Set<Blueprint> result = blueprints.values().stream()
                 .filter(bp -> bp.getAuthor().equals(author))
                 .collect(Collectors.toSet());
+        if (result.isEmpty()) {
+            throw new BlueprintNotFoundException("No blueprints found for author: " + author);
+        }
+        return result;
     }
 
-    /**
-     * Recupera todos los planos almacenados en memoria.
-     *
-     * @return conjunto de todos los planos registrados
-     */
     @Override
     public Set<Blueprint> getAllBlueprints() {
         return Set.copyOf(blueprints.values());
+    }
+
+    @Override
+    public void updateBlueprint(String author, String name, Blueprint bp) throws BlueprintNotFoundException {
+        Tuple<String, String> key = new Tuple<>(author, name);
+        Blueprint prev = blueprints.replace(key, bp); // atomic replace
+        if (prev == null) {
+            throw new BlueprintNotFoundException("Cannot update non-existent blueprint: " + author + ", " + name);
+        }
     }
 }

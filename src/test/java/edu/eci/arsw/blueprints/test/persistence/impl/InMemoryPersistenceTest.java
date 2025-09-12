@@ -110,7 +110,7 @@ public class InMemoryPersistenceTest {
 
         Set<Blueprint> all = ibpp.getAllBlueprints();
 
-        assertEquals("Expected 3 blueprints in total", 3, all.size());
+        assertEquals("Expected 6 blueprints in total", 6, all.size());
         assertTrue(all.contains(bp1));
         assertTrue(all.contains(bp2));
         assertTrue(all.contains(bp3));

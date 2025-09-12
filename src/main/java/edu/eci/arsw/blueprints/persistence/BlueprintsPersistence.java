@@ -45,4 +45,6 @@ public interface BlueprintsPersistence {
      * @return un conjunto con todos los planos disponibles
      */
     Set<Blueprint> getAllBlueprints();
+
+    void updateBlueprint(String author, String bprintname, Blueprint bp) throws BlueprintNotFoundException;
 }

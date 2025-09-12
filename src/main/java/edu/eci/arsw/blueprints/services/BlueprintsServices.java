@@ -11,72 +11,37 @@ import edu.eci.arsw.blueprints.persistence.BlueprintNotFoundException;
 import edu.eci.arsw.blueprints.persistence.BlueprintPersistenceException;
 import edu.eci.arsw.blueprints.persistence.BlueprintsPersistence;
 
-/**
- * Servicio principal para la gestión de planos.
- *
- * Provee operaciones de alto nivel para:
- * - Registrar nuevos planos.
- * - Consultar planos individuales.
- * - Consultar planos por autor.
- * - Consultar todos los planos disponibles.
- *
- * Además, antes de retornar un plano, aplica un {@link BlueprintFilter}
- * para reducir o transformar sus puntos según el criterio de filtrado configurado.
- */
 @Service
 public class BlueprintsServices {
-   
+
     @Autowired
     private BlueprintsPersistence bpp;
 
     @Autowired
-    @Qualifier("redundancyFilter") // Cambiar a "subsamplingFilter" para probar otro filtro
+    @Qualifier("redundancyFilter")
     private BlueprintFilter filter;
 
-    /**
-     * Registra un nuevo plano en el sistema.
-     *
-     * @param bp el plano a registrar
-     * @throws BlueprintPersistenceException si ya existe un plano con el mismo nombre y autor,
-     *                                       o si ocurre un error de persistencia.
-     */
     public void addNewBlueprint(Blueprint bp) throws BlueprintPersistenceException {
         bpp.saveBlueprint(bp);
     }
 
-    /**
-     * Obtiene todos los planos almacenados, aplicando el filtro configurado.
-     *
-     * @return un conjunto de planos filtrados
-     */
     public Set<Blueprint> getAllBlueprints() {
         return bpp.getAllBlueprints().stream()
                 .map(filter::filter)
                 .collect(Collectors.toSet());
     }
 
-    /**
-     * Obtiene un plano específico, aplicando el filtro configurado.
-     *
-     * @param author autor del plano
-     * @param name nombre del plano
-     * @return el plano filtrado
-     * @throws BlueprintNotFoundException si no se encuentra un plano con ese autor y nombre
-     */
     public Blueprint getBlueprint(String author, String name) throws BlueprintNotFoundException {
         return filter.filter(bpp.getBlueprint(author, name));
     }
 
-    /**
-     * Obtiene todos los planos de un autor específico, aplicando el filtro configurado.
-     *
-     * @param author autor cuyos planos se quieren consultar
-     * @return un conjunto de planos filtrados del autor
-     * @throws BlueprintNotFoundException si el autor no tiene planos registrados
-     */
     public Set<Blueprint> getBlueprintsByAuthor(String author) throws BlueprintNotFoundException {
         return bpp.getBlueprintsByAuthor(author).stream()
                 .map(filter::filter)
                 .collect(Collectors.toSet());
+    }
+
+    public void updateBlueprint(String author, String name, Blueprint bp) throws BlueprintNotFoundException {
+        bpp.updateBlueprint(author, name, bp);
     }
 }
