@@ -12,11 +12,27 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
+/**
+ * Implementación en memoria de la interfaz {@link BlueprintsPersistence}.
+ * 
+ * Esta clase utiliza un {@link ConcurrentHashMap} para almacenar
+ * los planos en memoria, indexados por una clave compuesta
+ * ({@link Tuple}) que combina autor y nombre del plano.
+ *
+ * Se inicializa con algunos planos de ejemplo para pruebas.
+ *
+ * @author Alejandro Prieto
+ */
 @Component
 public class InMemoryBlueprintPersistence implements BlueprintsPersistence {
 
+    /** Mapa concurrente que almacena los planos por (autor, nombre). */
     private final Map<Tuple<String, String>, Blueprint> blueprints;
 
+    /**
+     * Constructor que inicializa la persistencia en memoria con
+     * tres planos por defecto (dos de "juan" y uno de "maria").
+     */
     public InMemoryBlueprintPersistence() {
         this.blueprints = new ConcurrentHashMap<>();
         // Inicializar con al menos 3 planos; 2 del mismo autor
@@ -28,6 +44,13 @@ public class InMemoryBlueprintPersistence implements BlueprintsPersistence {
         blueprints.put(new Tuple<>(bp3.getAuthor(), bp3.getName()), bp3);
     }
 
+    /**
+     * Guarda un nuevo plano en memoria.
+     *
+     * @param bp plano a guardar.
+     * @throws BlueprintPersistenceException si ya existe un plano
+     *         con el mismo autor y nombre.
+     */
     @Override
     public void saveBlueprint(Blueprint bp) throws BlueprintPersistenceException {
         Tuple<String, String> key = new Tuple<>(bp.getAuthor(), bp.getName());
@@ -37,6 +60,14 @@ public class InMemoryBlueprintPersistence implements BlueprintsPersistence {
         }
     }
 
+    /**
+     * Recupera un plano por autor y nombre.
+     *
+     * @param author nombre del autor.
+     * @param bprintname nombre del plano.
+     * @return el {@link Blueprint} encontrado.
+     * @throws BlueprintNotFoundException si no existe un plano con esos datos.
+     */
     @Override
     public Blueprint getBlueprint(String author, String bprintname) throws BlueprintNotFoundException {
         Blueprint bp = blueprints.get(new Tuple<>(author, bprintname));
@@ -46,6 +77,13 @@ public class InMemoryBlueprintPersistence implements BlueprintsPersistence {
         return bp;
     }
 
+    /**
+     * Obtiene todos los planos creados por un autor específico.
+     *
+     * @param author nombre del autor.
+     * @return conjunto de {@link Blueprint} asociados al autor.
+     * @throws BlueprintNotFoundException si no se encuentran planos del autor.
+     */
     @Override
     public Set<Blueprint> getBlueprintsByAuthor(String author) throws BlueprintNotFoundException {
         Set<Blueprint> result = blueprints.values().stream()
@@ -57,11 +95,24 @@ public class InMemoryBlueprintPersistence implements BlueprintsPersistence {
         return result;
     }
 
+    /**
+     * Obtiene todos los planos almacenados en memoria.
+     *
+     * @return conjunto inmutable de {@link Blueprint}.
+     */
     @Override
     public Set<Blueprint> getAllBlueprints() {
         return Set.copyOf(blueprints.values());
     }
 
+    /**
+     * Actualiza un plano existente con nuevos datos.
+     *
+     * @param author autor del plano.
+     * @param name   nombre del plano.
+     * @param bp     plano con la información actualizada.
+     * @throws BlueprintNotFoundException si no existe un plano con ese autor y nombre.
+     */
     @Override
     public void updateBlueprint(String author, String name, Blueprint bp) throws BlueprintNotFoundException {
         Tuple<String, String> key = new Tuple<>(author, name);

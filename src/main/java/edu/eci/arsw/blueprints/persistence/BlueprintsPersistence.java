@@ -7,7 +7,11 @@ import java.util.Set;
  * Interfaz que define los servicios de persistencia para planos.
  *
  * Permite almacenar, consultar y recuperar planos
- * según diferentes criterios.
+ * según diferentes criterios de búsqueda.
+ * 
+ * Implementaciones típicas: en memoria, en bases de datos, etc.
+ * 
+ * @author Alejandro Prieto
  */
 public interface BlueprintsPersistence {
 
@@ -46,5 +50,13 @@ public interface BlueprintsPersistence {
      */
     Set<Blueprint> getAllBlueprints();
 
+    /**
+     * Actualiza un plano existente en el sistema.
+     *
+     * @param author autor del plano
+     * @param bprintname nombre del plano
+     * @param bp nuevo contenido del plano
+     * @throws BlueprintNotFoundException si no existe un plano con ese autor y nombre
+     */
     void updateBlueprint(String author, String bprintname, Blueprint bp) throws BlueprintNotFoundException;
 }

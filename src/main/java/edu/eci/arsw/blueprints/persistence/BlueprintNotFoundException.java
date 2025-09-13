@@ -3,6 +3,11 @@ package edu.eci.arsw.blueprints.persistence;
 /**
  * Excepción lanzada cuando no se encuentra un plano
  * en el sistema de persistencia.
+ *
+ * Se utiliza principalmente en operaciones de consulta
+ * dentro de {@link BlueprintsPersistence}.
+ * 
+ * @author Alejandro Prieto
  */
 public class BlueprintNotFoundException extends Exception {
 

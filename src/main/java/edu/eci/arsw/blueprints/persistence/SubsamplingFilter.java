@@ -10,7 +10,12 @@ import edu.eci.arsw.blueprints.model.Point;
  * Implementación del filtro de submuestreo.
  *
  * Este filtro conserva únicamente un punto de cada dos,
- * reduciendo el tamaño de la lista de puntos.
+ * reduciendo la resolución de un plano a la mitad.
+ *
+ * Ejemplo:
+ * (1,1), (2,2), (3,3), (4,4) → (1,1), (3,3)
+ * 
+ * @author Alejandro Prieto
  */
 @Component("subsamplingFilter")
 public class SubsamplingFilter implements BlueprintFilter {

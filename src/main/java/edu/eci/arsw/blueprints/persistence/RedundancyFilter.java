@@ -10,6 +10,12 @@ import edu.eci.arsw.blueprints.model.Point;
  * Implementación del filtro de redundancia.
  *
  * Este filtro elimina los puntos consecutivos duplicados en un plano.
+ * Útil para optimizar planos con puntos repetidos que no aportan información.
+ * 
+ * Ejemplo:
+ * (1,1), (1,1), (2,2) → (1,1), (2,2)
+ * 
+ * @author Alejandro Prieto
  */
 @Component("redundancyFilter")
 public class RedundancyFilter implements BlueprintFilter {

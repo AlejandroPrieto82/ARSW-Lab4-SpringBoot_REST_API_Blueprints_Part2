@@ -17,10 +17,15 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 
+/**
+ * Controlador REST para la gestión de {@link Blueprint}.
+ * Proporciona operaciones CRUD básicas expuestas como servicios REST.
+ *
+ * @author Alejandro Prieto
+ */
 @RestController
 @RequestMapping("/blueprints")
 public class BlueprintAPIController {
@@ -30,6 +35,12 @@ public class BlueprintAPIController {
 
     private static final Logger LOG = Logger.getLogger(BlueprintAPIController.class.getName());
 
+    /**
+     * Obtiene todos los planos almacenados en el sistema.
+     *
+     * @return {@link ResponseEntity} con el conjunto de {@link Blueprint} y estado 202 (Accepted),
+     *         o un mensaje de error con estado 404 si ocurre un problema.
+     */
     @GetMapping
     public ResponseEntity<?> getAllBlueprints() {
         try {
@@ -41,6 +52,14 @@ public class BlueprintAPIController {
         }
     }
 
+    /**
+     * Obtiene todos los planos creados por un autor específico.
+     *
+     * @param author nombre del autor.
+     * @return {@link ResponseEntity} con el conjunto de {@link Blueprint} del autor y estado 202,
+     *         o un mensaje de error con estado 404 si no se encuentra el autor,
+     *         o un error 500 si ocurre un problema interno.
+     */
     @GetMapping("/{author}")
     public ResponseEntity<?> getBlueprintsByAuthor(@PathVariable String author) {
         try {
@@ -55,6 +74,14 @@ public class BlueprintAPIController {
         }
     }
 
+    /**
+     * Obtiene un plano específico a partir de un autor y el nombre del plano.
+     *
+     * @param author nombre del autor.
+     * @param bpname nombre del plano.
+     * @return {@link ResponseEntity} con el {@link Blueprint} solicitado y estado 202,
+     *         o un mensaje de error con estado 404 si no se encuentra el plano.
+     */
     @GetMapping("/{author}/{bpname}")
     public ResponseEntity<?> getBlueprint(@PathVariable String author, @PathVariable String bpname) {
         try {
@@ -66,6 +93,14 @@ public class BlueprintAPIController {
         }
     }
 
+    /**
+     * Crea un nuevo plano en el sistema.
+     *
+     * @param blueprint objeto {@link Blueprint} recibido en el cuerpo de la petición.
+     * @return {@link ResponseEntity} con estado 201 (Created) si se crea exitosamente,
+     *         o un mensaje con estado 403 si ya existe,
+     *         o un error 500 en caso de fallo interno.
+     */
     @PostMapping
     public ResponseEntity<?> createBlueprint(@RequestBody Blueprint blueprint) {
         try {
@@ -80,6 +115,16 @@ public class BlueprintAPIController {
         }
     }
 
+    /**
+     * Actualiza un plano existente en el sistema.
+     *
+     * @param author   nombre del autor del plano.
+     * @param bpname   nombre del plano.
+     * @param blueprint objeto {@link Blueprint} con la información actualizada.
+     * @return {@link ResponseEntity} con estado 202 si se actualiza exitosamente,
+     *         o un mensaje de error con estado 404 si no se encuentra el plano,
+     *         o un error 500 en caso de fallo interno.
+     */
     @PutMapping("/{author}/{bpname}")
     public ResponseEntity<?> updateBlueprint(@PathVariable String author,
                                              @PathVariable String bpname,
