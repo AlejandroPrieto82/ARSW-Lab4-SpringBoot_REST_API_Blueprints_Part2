@@ -116,6 +116,7 @@ La documentación generada estará disponible en:
 
 ```
 target/site/apidocs/index.html
+target\reports\apidocs\index.html
 ```
 
 Abra ese archivo en un navegador para explorar la documentación de las clases y métodos de la aplicación.  
